@@ -83,7 +83,7 @@ function getData() {
   //console.log(accountList)
   return oppList
   
- // I know have workable data that gives me a dictionary for each unique opportunity name with the relevant rows of data per unique opportunity name
+ // I now have workable data that gives me a dictionary for each unique opportunity name with the relevant rows of data per unique opportunity name
 
 }
 
@@ -91,12 +91,7 @@ function getData() {
 unfinished as I do not have access to the right keys
   
 function buildPayload(data) {
-  /*let totalRevenue = data[0][1];
-  let revenueBreakdown = data.slice(1).map(function(row) {
-    return row[0] + ": $" + row[1];
-  }).join("\n");*/
   
-
   let payload = {
     "blocks": [
       {
