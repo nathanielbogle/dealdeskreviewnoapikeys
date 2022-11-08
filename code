@@ -1,0 +1,163 @@
+function getData() {
+
+// this group of code locates the spreadsheet I want to pull data from by sheet name and then pulls the data into an array 
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  const sheet = ss.getSheetByName('Data')
+  let data = sheet.getDataRange().getDisplayValues()
+  
+  // here I create empty dictionaries and arrays in order to store the data I need
+  
+  let oppList = {} 
+  let oppNames = []
+  
+  // now I have the data I push the column which contains the Salesforce opportunity names into an array as I will use
+  these opportunity names to make sure I capture all of the data associated with an order form modification request
+  
+  data.map(row => {
+    let [,,oppName] = row
+    oppNames.push(oppName)
+  })
+  
+  // I use shift to remove the top row i.e 'opportunity name' from the column meaning I now have a list of unqiue opportunity names in an array
+
+  oppNames.shift()
+  
+  // I then create an array for all of my columns using their column header names so I know exactly what data I am working with and then push that data
+  
+  let uniqueOpps = [...new Set(oppNames)];
+  uniqueOpps.map(opps => {
+    let list = []
+    data.map(row =>{
+     /**
+      * add column headers here
+      */
+      let [
+        oppId,
+        quoteId,
+        oppName,
+        accountName,
+        quantity,
+        primary,
+        pricePerDevice,
+        effectivePrice,
+        quoteProduct,
+        requiresVpApproval,
+        discount,
+        termLength,
+        dealScore,
+        subscriptionStartDate,
+        subscriptionTermEndDate,
+        ownerName,
+        discountApproved,
+        amount,
+        renewalTerm,
+        stage,
+        oneTimeIncentive,
+        type,
+        renewalUplift,
+        bookingsType,
+        transactionType,
+        billingFrequency,
+        quoteTemplate,
+        billingCountry,
+        closeDate,
+        ppd,
+        accountPageLink,
+        oppPageLink
+        ] = row
+      if(opps == oppName){
+     /**
+      * and mirror it here
+      */
+      
+        list.push({oppId,quoteId,oppName,accountName,quantity,primary,pricePerDevice,effectivePrice,quoteProduct,requiresVpApproval,discount,termLength,dealScore,subscriptionStartDate,subscriptionTermEndDate,ownerName,discountApproved,amount,stage,oneTimeIncentive,type,renewalUplift,bookingsType,transactionType,billingFrequency,quoteTemplate,billingCountry,closeDate,ppd,accountPageLink,oppPageLink})
+      }
+    })
+    oppList[opps] = list 
+    //Logger.log(oppList)
+  })
+
+    Logger.log(oppList)
+
+  //console.log(accountList)
+  return oppList
+  
+ // I know have workable data that gives me a dictionary for each unique opportunity name with the relevant rows of data per unique opportunity name
+
+}
+
+// Here I have briefly worked on creating the payloads which I will then use to push data from the Google Sheets to Slack, currently this section is 
+unfinished as I do not have access to the right keys
+  
+function buildPayload(data) {
+  /*let totalRevenue = data[0][1];
+  let revenueBreakdown = data.slice(1).map(function(row) {
+    return row[0] + ": $" + row[1];
+  }).join("\n");*/
+  
+
+  let payload = {
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "🔔 New Order Form Mod Request 🔔"
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "The opportunity link" 
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "A breakdown of revenue by source is as follows:"
+        }
+      },
+    ]
+  };
+
+  /**
+   * edit this section to change the payload information 
+   */
+  Object.keys(data).map( rows => {
+    let info = data[rows]
+    info.map(detail => {
+       let section = [
+         {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `Opportunity Name: ${detail.oppName}`
+        },
+
+        
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `Billing Country: ${detail.billingCountry}`
+        }
+
+      }]
+     payload.blocks.push(section)
+    })
+       
+  })
+ 
+  Logger.log(payload)
+}
+
+function sendPayloads(){
+  let data = getData()
+  Object.keys(data).map(() => buildPayload(data))
+}
+
